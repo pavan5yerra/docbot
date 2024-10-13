@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document-Based Q&A Chatbot</title>
+  <link rel="stylesheet" type="text/css" href="index.css" /> 
+</head>
+<body>
+  <!-- Chatbot Icon -->
+  <div id="chatbot-icon" onclick="toggleChat()">
+    <img src="chatbot-icon.png" alt="Chatbot Icon"> <!-- Replace with your chatbot icon URL -->
+  </div>
+
+  <!-- Chat Modal -->
+  <div id="chat-modal">
+    <button class="close-button" onclick="toggleChat()">×</button>
+    <div id="chat-history"></div>
+    <div id="loading">
+      <img src="https://i.imgur.com/llF5W8C.gif" alt="" width="30"> <!-- Replace with your loading spinner URL -->
+      <div class="loader"></div> <!-- New loader element -->
+    </div>
+    <div id="input-container">
+      <input type="text" id="user-question" placeholder="Ask about SPJMR">
+      <button onclick="submitQuestion()">Send</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.8.335/pdf.min.js"></script>
+  <script src="./index.js"></script>
+</body>
+</html>
