@@ -1,5 +1,6 @@
 let documentText = '';
 let chatHistory = [];
+let isSubmitting = false; // Flag to prevent multiple submissions
 
 // Function to extract text from PDF
 async function extractTextFromPDF(pdfUrl) {
@@ -76,14 +77,18 @@ function typeOutResponse(response) {
 
 // Function to send document text and user question to OpenAI
 async function submitQuestion() {
+  if (isSubmitting) return; // Prevent further submissions
+  isSubmitting = true; // Set flag to true
+
   const userQuestion = document.getElementById('user-question').value;
 
   if (!documentText || !userQuestion) {
     alert("Please wait for the PDFs to load and ask a question.");
+    isSubmitting = false; // Reset flag
     return;
   }
 
-  const apiKey = "sk-HUifBkk4XPhJlkREQgBvnz_dX0lbh0NDNWu_WHl2RhT3BlbkFJB8jlkIo8ByFYp1qoyE9S8nkniZRh8nNOcFt10j8QUA";
+  const apiKey = "sk-HUifBkk4XPhJlkREQgBvnz_dX0lbh0NDNWu_WHl2RhT3BlbkFJB8jlkIo8ByFYp1qoyE9S8nkniZRh8nNOcFt10j8QUA"; // Replace with your OpenAI API key
   const messages = [
     { role: 'system', content: 'You are a helpful assistant that answers questions based on the provided document.' },
     { role: 'system', content: `Document content:\n${documentText}` },
@@ -111,14 +116,20 @@ async function submitQuestion() {
     const data = await response.json();
     const assistantResponse = data.choices[0].message.content;
 
-    // Add the user question to chat history
-    chatHistory.push({ role: 'user', content: userQuestion });
+    // Only push to chat history if the response is valid
+    if (assistantResponse) {
+      // Add the user question to chat history
+      chatHistory.push({ role: 'user', content: userQuestion });
 
-    // Update chat history on the page
-    updateChatHistory();
+      // Update chat history on the page
+      updateChatHistory(); // Display chat history
 
-    // Type out the assistant's response
-    typeOutResponse(assistantResponse);
+      // Type out the assistant's response
+      typeOutResponse(assistantResponse); // Animate typing effect
+      chatHistory.push({ role: 'assistant', content: assistantResponse });
+    } else {
+      alert('Assistant response is empty. Please try again.');
+    }
 
     document.getElementById('user-question').value = ""; // Clear the input
   } catch (error) {
@@ -127,6 +138,7 @@ async function submitQuestion() {
   } finally {
     // Hide loading spinner in the modal
     loadingDiv.style.display = 'none';
+    isSubmitting = false; // Reset flag in the end
   }
 }
 
@@ -139,7 +151,6 @@ function handleKeyPress(event) {
 
 // Add event listener for keypress
 document.getElementById('user-question').addEventListener('keypress', handleKeyPress);
-
 
 // Load documents when the page loads
 window.onload = loadDocuments;
