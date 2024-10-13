@@ -83,7 +83,7 @@ async function submitQuestion() {
     return;
   }
 
-  const apiKey = ""; // Replace with your OpenAI API key
+  const apiKey = "sk-XcBdeH_XXCndCizHNc6MHKgFFjfbGWtdGCLh3kO967T3BlbkFJWVIfC-TMTOggXcSLflHaAcPiJGlEk_VhE8RPAWsT4A"; // Replace with your OpenAI API key
   const messages = [
     { role: 'system', content: 'You are a helpful assistant that answers questions based on the provided document.' },
     { role: 'system', content: `Document content:\n${documentText}` },
