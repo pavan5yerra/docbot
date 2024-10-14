@@ -88,7 +88,7 @@ async function submitQuestion() {
     return;
   }
 
-  const apiKey = "sk-HUifBkk4XPhJlkREQgBvnz_dX0lbh0NDNWu_WHl2RhT3BlbkFJB8jlkIo8ByFYp1qoyE9S8nkniZRh8nNOcFt10j8QUA"; // Replace with your OpenAI API key
+  const apiKey = "sk-1wQX-dhkAqdCD4NNLUokmR_NfvsMTwdxNvcaNEmTR9T3BlbkFJocdr7BEzVVYpgctEUGWHbgdQPtTxDll7Gt2AoXKf0A"; // Replace with your OpenAI API key
   const messages = [
     { role: 'system', content: 'You are a helpful assistant that answers questions based on the provided document.' },
     { role: 'system', content: `Document content:\n${documentText}` },
