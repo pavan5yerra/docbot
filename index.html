@@ -23,12 +23,25 @@
         <!-- New loader element -->
       </div>
       <div id="input-container">
-        <input type="text" id="user-question" placeholder="Ask about AynRand" />
+        <input
+          type="text"
+          id="user-question"
+          placeholder="Ask about BNS(Bharatiya Nyaya Sanhita)"
+        />
         <button onclick="submitQuestion()">Send</button>
       </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.8.335/pdf.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.8.335/pdf.min.js"></script> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.min.mjs"></script> -->
+    <script type="module">
+      import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.min.mjs";
+
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.worker.min.mjs";
+
+      console.log("PDF.js loaded as a module!");
+    </script>
     <script src="./index.js"></script>
   </body>
 </html>
