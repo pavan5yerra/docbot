@@ -1,28 +1,36 @@
 let documentText = "";
 let chatHistory = [];
-let isSubmitting = false; // Flag to prevent multiple submissions
+let isSubmitting = false; 
 
+// Function to extract text from PDF
 async function extractTextFromPDF(pdfUrl) {
-  const pdfjsLib = window["pdfjs-dist/build/pdf"];
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.8.335/pdf.worker.min.js";
+  try {
+    const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+    let textContent = "";
 
-  const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
-  let textContent = "";
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const text = await page.getTextContent();
 
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const text = await page.getTextContent();
-    textContent += text.items.map((item) => item.str).join(" ") + "\n";
+      console.log(`Page ${i} Text:`, text.items); // Debugging Output
+
+      if (!text.items || text.items.length === 0) {
+        console.error(`No text found on page ${i}`);
+      }
+
+      textContent += text.items.map((item) => item.str).join(" ") + "\n";
+    }
+
+    return textContent;
+  } catch (error) {
+    console.error("Error extracting text:", error);
+    return "";
   }
-
-  return textContent;
 }
+
 // Function to load documents
 async function loadDocuments() {
-  const pdfUrls = [
-    "./SPJMR_HANDBOOK_2024.pdf"
-  ];
+  const pdfUrls = ["./BNS.pdf"];
 
   for (const url of pdfUrls) {
     const text = await extractTextFromPDF(url);
@@ -77,32 +85,41 @@ function typeOutResponse(response) {
   type(); // Start typing
 }
 
-// Function to send document text and user question to OpenAI
 async function submitQuestion() {
-  if (isSubmitting) return; // Prevent further submissions
-  isSubmitting = true; // Set flag to true
+  if (isSubmitting) return; // Prevent multiple submissions
+  isSubmitting = true; // Set flag
 
-  const userQuestion = document.getElementById("user-question").value;
+  const userQuestion = document.getElementById("user-question").value.trim();
 
   if (!documentText || !userQuestion) {
     alert("Please wait for the PDFs to load and ask a question.");
-    isSubmitting = false; // Reset flag
+    isSubmitting = false;
     return;
   }
 
   const apiKey =
-    "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"; // Replace with your OpenAI API key
+    "sk-wV1m11Kdef1PkjjQJIVYfmDLUFTvNkjB8uC9LqY-ZfT3BlbkFJRKMwJRcdH76Mz7DA7emepLiCl8DiihzbhVmBbTs-QA"; // Replace with your OpenAI API key
+
+  // 🔹 Step 1: Ensure documentText is within token limits
+  const maxTokens = 4000; // Adjust based on OpenAI model limit
+  let trimmedText = documentText.substring(0, maxTokens); // Truncate if too long
+
+  // 🔹 Step 2: Summarize document if it's too large
+  if (documentText.length > maxTokens) {
+    trimmedText = await summarizeDocument(documentText);
+  }
+
   const messages = [
     {
       role: "system",
       content:
         "You are a helpful assistant that answers questions based on the provided document.",
     },
-    { role: "system", content: `Document content:\n${documentText}` },
+    { role: "system", content: `Document Summary:\n${trimmedText}` },
     { role: "user", content: userQuestion },
   ];
 
-  // Show loading spinner in the modal
+  // Show loading spinner
   const loadingDiv = document.getElementById("loading");
   loadingDiv.style.display = "block";
 
@@ -114,38 +131,72 @@ async function submitQuestion() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo", // or use 'gpt-4' if available
+        model: "gpt-3.5-turbo", // Use gpt-4 if available
         messages: messages,
-        max_tokens: 200,
+        max_tokens: 500, // Adjust as needed
       }),
     });
 
     const data = await response.json();
+
+    if (!data.choices || data.choices.length === 0) {
+      throw new Error("Unexpected OpenAI response format.");
+    }
+
     const assistantResponse = data.choices[0].message.content;
 
-    // Only push to chat history if the response is valid
+    // Only push to chat history if response is valid
     if (assistantResponse) {
-      // Add the user question to chat history
       chatHistory.push({ role: "user", content: userQuestion });
-
-      // Update chat history on the page
       updateChatHistory(); // Display chat history
-
-      // Type out the assistant's response
       typeOutResponse(assistantResponse); // Animate typing effect
       chatHistory.push({ role: "assistant", content: assistantResponse });
     } else {
       alert("Assistant response is empty. Please try again.");
     }
 
-    document.getElementById("user-question").value = ""; // Clear the input
+    document.getElementById("user-question").value = ""; // Clear input
   } catch (error) {
     console.error("Error fetching response from OpenAI:", error);
     alert("Error fetching response.");
   } finally {
-    // Hide loading spinner in the modal
-    loadingDiv.style.display = "none";
-    isSubmitting = false; // Reset flag in the end
+    loadingDiv.style.display = "none"; // Hide loading spinner
+    isSubmitting = false; // Reset flag
+  }
+}
+
+// 🔹 Function to Summarize Large Documents Before Sending
+async function summarizeDocument(text) {
+  try {
+    const apiKey =
+      "sk-wV1m11Kdef1PkjjQJIVYfmDLUFTvNkjB8uC9LqY-ZfT3BlbkFJRKMwJRcdH76Mz7DA7emepLiCl8DiihzbhVmBbTs-QA"; // Replace with your OpenAI API key
+    const summaryResponse = await fetch(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "system",
+              content:
+                "Summarize the following document in 500 words:\n\n" + text,
+            },
+          ],
+          max_tokens: 500,
+        }),
+      }
+    );
+
+    const summaryData = await summaryResponse.json();
+    return summaryData.choices[0]?.message?.content || text.substring(0, 3000); // Fallback
+  } catch (error) {
+    console.error("Error summarizing document:", error);
+    return text.substring(0, 3000); // Fallback
   }
 }
 
