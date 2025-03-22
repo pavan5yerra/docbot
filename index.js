@@ -98,7 +98,7 @@ async function submitQuestion() {
   }
 
   const apiKey =
-    "sk-wV1m11Kdef1PkjjQJIVYfmDLUFTvNkjB8uC9LqY-ZfT3BlbkFJRKMwJRcdH76Mz7DA7emepLiCl8DiihzbhVmBbTs-QA"; // Replace with your OpenAI API key
+    "xxxxxxxxxxxxxx"; // Replace with your OpenAI API key
 
   // 🔹 Step 1: Ensure documentText is within token limits
   const maxTokens = 4000; // Adjust based on OpenAI model limit
@@ -169,7 +169,7 @@ async function submitQuestion() {
 async function summarizeDocument(text) {
   try {
     const apiKey =
-      "sk-wV1m11Kdef1PkjjQJIVYfmDLUFTvNkjB8uC9LqY-ZfT3BlbkFJRKMwJRcdH76Mz7DA7emepLiCl8DiihzbhVmBbTs-QA"; // Replace with your OpenAI API key
+      "xxxxxxxxxxxxxxxxxxxxxxx"; // Replace with your OpenAI API key
     const summaryResponse = await fetch(
       "https://api.openai.com/v1/chat/completions",
       {
